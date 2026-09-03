@@ -1,0 +1,283 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1580 1560" font-family="'Microsoft YaHei','PingFang SC','Segoe UI',sans-serif">
+  <defs>
+    <style>
+      text{fill:#25313a;}
+      .h1{font-size:30px;font-weight:700;}
+      .sb{font-size:14px;fill:#5b6875;}
+      .st{font-size:20px;font-weight:700;}
+      .nt{font-size:12.5px;fill:#61707c;}
+      .bd{font-size:13.5px;fill:#2c3843;}
+      .b{font-weight:700;}
+      .mn{font-family:'Consolas','Courier New',monospace;font-size:12.5px;fill:#233842;}
+      .fm{font-family:'Consolas','Courier New',monospace;font-size:14px;font-weight:700;}
+      .cp{font-size:13.5px;font-weight:600;}
+      .bg{font-size:16px;font-weight:700;}
+      .lg{font-size:12.5px;fill:#44515c;}
+      .badge{font-size:19px;font-weight:700;fill:#ffffff;}
+    </style>
+    <marker id="arr" markerWidth="12" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L11,5 L0,10 Z" fill="#54636f"/>
+    </marker>
+    <marker id="arrR" markerWidth="13" markerHeight="11" refX="10" refY="5.5" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L12,5.5 L0,11 Z" fill="#c0392b"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1580" height="1560" fill="#fbfcfe"/>
+
+  <!-- ===== Header ===== -->
+  <text class="h1" x="40" y="46">Orbit Wars 银牌方案 · 从数据到 PPO 强化学习的完整训练闭环</text>
+  <text class="sb" x="41" y="72">训练端自我对弈闭环；所有形状 / 公式 / 超参忠于 training/train_2p_from_scratch.py（2P 主线，右栏附 4P 差异）</text>
+
+  <!-- ===== Legend ===== -->
+  <g>
+    <rect x="80"  y="101" width="14" height="14" rx="3" fill="#e9f2fc" stroke="#3f86c9"/><text class="lg" x="100" y="113">数据</text>
+    <rect x="168" y="101" width="14" height="14" rx="3" fill="#f0ecfb" stroke="#8266d4"/><text class="lg" x="188" y="113">网络</text>
+    <rect x="256" y="101" width="14" height="14" rx="3" fill="#e6f6ec" stroke="#2ba15f"/><text class="lg" x="276" y="113">动作</text>
+    <rect x="344" y="101" width="14" height="14" rx="3" fill="#eceff3" stroke="#7b8794"/><text class="lg" x="364" y="113">环境</text>
+    <rect x="432" y="101" width="14" height="14" rx="3" fill="#fdf0e3" stroke="#e08a2b"/><text class="lg" x="452" y="113">奖励·回报</text>
+    <rect x="548" y="101" width="14" height="14" rx="3" fill="#fdeceb" stroke="#e0574f"/><text class="lg" x="568" y="113">损失·更新</text>
+    <line x1="686" y1="108" x2="726" y2="108" stroke="#54636f" stroke-width="2" marker-end="url(#arr)"/><text class="lg" x="732" y="113">前向数据流</text>
+    <line x1="852" y1="108" x2="892" y2="108" stroke="#c0392b" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arrR)"/><text class="lg" x="898" y="113">梯度 / 参数更新（闭环）</text>
+  </g>
+
+  <!-- ===== Stage 1: Data input ===== -->
+  <rect x="70" y="145" width="980" height="200" rx="16" fill="#e9f2fc" stroke="#3f86c9" stroke-width="1.5"/>
+  <circle cx="98" cy="173" r="17" fill="#3f86c9"/><text class="badge" x="98" y="180" text-anchor="middle">1</text>
+  <text class="st" x="128" y="180" fill="#1c5c96">数据输入：观测 → 三路特征（extract_state）</text>
+
+  <rect x="92" y="198" width="250" height="120" rx="8" fill="#ffffff" stroke="#3f86c9" stroke-width="1.1"/>
+  <text class="bd b" x="104" y="222">官方环境观测 observation</text>
+  <text class="mn" x="104" y="246">planets[·, 7] =</text>
+  <text class="mn" x="104" y="266">id,owner,x,y,radius,ships,prod</text>
+  <text class="mn" x="104" y="292">fleets[·, 7]   ·   step</text>
+
+  <line x1="342" y1="258" x2="388" y2="258" stroke="#54636f" stroke-width="2" marker-end="url(#arr)"/>
+
+  <rect x="392" y="210" width="180" height="96" rx="8" fill="#ffffff" stroke="#3f86c9" stroke-width="1.1"/>
+  <text class="bd b" x="404" y="234">extract_state</text>
+  <text class="bd" x="404" y="258">驻军最多 1 颗 → 来源</text>
+  <text class="bd" x="404" y="282">其余存活 → 候选（N 个）</text>
+
+  <line x1="572" y1="258" x2="618" y2="258" stroke="#54636f" stroke-width="2" marker-end="url(#arr)"/>
+
+  <rect x="624" y="200" width="418" height="34" rx="7" fill="#d7e8fa" stroke="#3f86c9" stroke-width="1"/>
+  <text class="cp" x="638" y="222"><tspan class="b" fill="#1c5c96">A  来源特征</tspan>   self_features  [14]</text>
+  <rect x="624" y="240" width="418" height="44" rx="7" fill="#d7e8fa" stroke="#3f86c9" stroke-width="1"/>
+  <text class="cp" x="638" y="260"><tspan class="b" fill="#1c5c96">B  候选特征</tspan>   candidate_features  [N, 18]</text>
+  <text class="nt" x="638" y="277">= 14 基础特征 + 4 几何量（方向 / 距离 / 粗略 ETA）</text>
+  <rect x="624" y="290" width="418" height="30" rx="7" fill="#d7e8fa" stroke="#3f86c9" stroke-width="1"/>
+  <text class="cp" x="638" y="310"><tspan class="b" fill="#1c5c96">C  全局特征</tspan>   global_features  [8]</text>
+
+  <text class="nt" x="92" y="336">A 与 B 前 14 维同出 planet_features（同一张“星球特征表”），只是套在不同星球：A=来源那颗，B=每个候选目标。</text>
+
+  <line x1="560" y1="345" x2="560" y2="371" stroke="#54636f" stroke-width="2.2" marker-end="url(#arr)"/>
+
+  <!-- ===== Stage 2: Network forward ===== -->
+  <rect x="70" y="372" width="980" height="250" rx="16" fill="#f0ecfb" stroke="#8266d4" stroke-width="1.5"/>
+  <circle cx="98" cy="400" r="17" fill="#8266d4"/><text class="badge" x="98" y="407" text-anchor="middle">2</text>
+  <text class="st" x="128" y="407" fill="#5b3fbf">网络前向：Actor-Critic（TargetPolicy）</text>
+  <text class="nt" x="128" y="431">编码器 Encoder = Linear(输入→256) + 2×残差块 ；   残差块 = x +（LayerNorm→Linear→ReLU→Linear）</text>
+
+  <!-- input chips -->
+  <rect x="92" y="452" width="92" height="30" rx="7" fill="#ffffff" stroke="#8266d4" stroke-width="1"/><text class="cp" x="138" y="472" text-anchor="middle">来源 [14]</text>
+  <rect x="92" y="496" width="92" height="30" rx="7" fill="#ffffff" stroke="#8266d4" stroke-width="1"/><text class="cp" x="138" y="516" text-anchor="middle">候选 [N,18]</text>
+  <rect x="92" y="540" width="92" height="30" rx="7" fill="#ffffff" stroke="#8266d4" stroke-width="1"/><text class="cp" x="138" y="560" text-anchor="middle">全局 [8]</text>
+  <!-- encoders -->
+  <rect x="200" y="452" width="170" height="30" rx="7" fill="#e6ddf8" stroke="#8266d4" stroke-width="1"/><text class="cp" x="285" y="472" text-anchor="middle">self_encoder</text>
+  <rect x="200" y="496" width="170" height="30" rx="7" fill="#e6ddf8" stroke="#8266d4" stroke-width="1"/><text class="cp" x="285" y="516" text-anchor="middle">candidate_encoder</text>
+  <rect x="200" y="540" width="170" height="30" rx="7" fill="#e6ddf8" stroke="#8266d4" stroke-width="1"/><text class="cp" x="285" y="560" text-anchor="middle">global_encoder</text>
+  <!-- hidden -->
+  <rect x="388" y="452" width="118" height="30" rx="7" fill="#ffffff" stroke="#8266d4" stroke-width="1"/><text class="mn" x="447" y="471" text-anchor="middle">self_h [256]</text>
+  <rect x="388" y="496" width="118" height="30" rx="7" fill="#ffffff" stroke="#8266d4" stroke-width="1"/><text class="mn" x="447" y="515" text-anchor="middle">cand_h [N,256]</text>
+  <rect x="388" y="540" width="118" height="30" rx="7" fill="#ffffff" stroke="#8266d4" stroke-width="1"/><text class="mn" x="447" y="559" text-anchor="middle">global_h [256]</text>
+  <!-- concat -->
+  <rect x="524" y="452" width="140" height="118" rx="9" fill="#e6ddf8" stroke="#8266d4" stroke-width="1.2"/>
+  <text class="cp" x="594" y="498" text-anchor="middle">拼接 + 广播</text>
+  <text class="fm" x="594" y="522" text-anchor="middle" fill="#5b3fbf">joint [N,768]</text>
+  <text class="nt" x="594" y="544" text-anchor="middle">[self_h|global_h|cand_h]</text>
+  <!-- heads -->
+  <rect x="684" y="452" width="210" height="48" rx="8" fill="#ffffff" stroke="#8266d4" stroke-width="1.2"/>
+  <text class="cp" x="694" y="472">target_head（策略头）</text>
+  <text class="mn" x="694" y="491">768 → 256 → 128 → 1</text>
+  <rect x="684" y="522" width="210" height="48" rx="8" fill="#ffffff" stroke="#8266d4" stroke-width="1.2"/>
+  <text class="cp" x="694" y="542">value_head（价值头）</text>
+  <text class="mn" x="694" y="561">768 → 256 → 128 → 1</text>
+  <!-- outputs -->
+  <rect x="912" y="446" width="130" height="62" rx="8" fill="#e6f6ec" stroke="#2ba15f" stroke-width="1.2"/>
+  <text class="cp" x="922" y="466" fill="#1c7d46">策略 π</text>
+  <text class="mn" x="922" y="484">logits [N]</text>
+  <text class="nt" x="922" y="501">×logit_scale · 非法→ −∞</text>
+  <rect x="912" y="522" width="130" height="48" rx="8" fill="#e6f6ec" stroke="#2ba15f" stroke-width="1.2"/>
+  <text class="cp" x="922" y="543" fill="#1c7d46">价值 V</text>
+  <text class="nt" x="922" y="561">给当前局面打分</text>
+
+  <text class="nt" x="684" y="590">value_head 输入取 [self_h | global_h | cand_h 的均值]</text>
+
+  <!-- stage2 inner arrows -->
+  <g stroke="#54636f" stroke-width="1.6" fill="none">
+    <line x1="184" y1="467" x2="199" y2="467" marker-end="url(#arr)"/>
+    <line x1="184" y1="511" x2="199" y2="511" marker-end="url(#arr)"/>
+    <line x1="184" y1="555" x2="199" y2="555" marker-end="url(#arr)"/>
+    <line x1="370" y1="467" x2="387" y2="467" marker-end="url(#arr)"/>
+    <line x1="370" y1="511" x2="387" y2="511" marker-end="url(#arr)"/>
+    <line x1="370" y1="555" x2="387" y2="555" marker-end="url(#arr)"/>
+    <line x1="506" y1="467" x2="523" y2="478" marker-end="url(#arr)"/>
+    <line x1="506" y1="511" x2="523" y2="511" marker-end="url(#arr)"/>
+    <line x1="506" y1="555" x2="523" y2="544" marker-end="url(#arr)"/>
+    <line x1="664" y1="500" x2="683" y2="478" marker-end="url(#arr)"/>
+    <line x1="664" y1="524" x2="683" y2="546" marker-end="url(#arr)"/>
+    <line x1="894" y1="476" x2="911" y2="476" marker-end="url(#arr)"/>
+    <line x1="894" y1="546" x2="911" y2="546" marker-end="url(#arr)"/>
+  </g>
+
+  <line x1="560" y1="622" x2="560" y2="648" stroke="#54636f" stroke-width="2.2" marker-end="url(#arr)"/>
+  <text class="nt" x="570" y="641">动作采样只用策略 π；价值 V 不选动作，存入 buffer 供 ⑤ / ⑥ 训练用</text>
+
+  <!-- ===== Stage 3: Sample -> action ===== -->
+  <rect x="70" y="649" width="980" height="150" rx="16" fill="#e6f6ec" stroke="#2ba15f" stroke-width="1.5"/>
+  <circle cx="98" cy="677" r="17" fill="#2ba15f"/><text class="badge" x="98" y="684" text-anchor="middle">3</text>
+  <text class="st" x="128" y="684" fill="#1c7d46">采样 → 动作（Agent.act）</text>
+
+  <rect x="92" y="704" width="300" height="80" rx="8" fill="#ffffff" stroke="#2ba15f" stroke-width="1.1"/>
+  <text class="bd b" x="104" y="728">训练：a ~ Categorical(logits) 采样</text>
+  <text class="bd b" x="104" y="750">推理：a = argmax（贪心，无采样）</text>
+  <text class="nt" x="104" y="772">同时记录 log π(a) 与 价值 V</text>
+
+  <line x1="392" y1="744" x2="428" y2="744" stroke="#54636f" stroke-width="2" marker-end="url(#arr)"/>
+
+  <rect x="430" y="704" width="300" height="80" rx="8" fill="#ffffff" stroke="#2ba15f" stroke-width="1.1"/>
+  <text class="bd b" x="442" y="728">解码所选目标 a：</text>
+  <text class="mn" x="442" y="751">source_id ,  angle = angles[a]</text>
+  <text class="bd" x="442" y="773">ships = 全军出击</text>
+
+  <line x1="730" y1="744" x2="766" y2="744" stroke="#54636f" stroke-width="2" marker-end="url(#arr)"/>
+
+  <rect x="768" y="714" width="266" height="60" rx="8" fill="#d5f0de" stroke="#2ba15f" stroke-width="1.3"/>
+  <text class="fm" x="780" y="740" fill="#1c7d46">动作 = [source_id, θ, ships]</text>
+  <text class="nt" x="780" y="760">可发多支；也可整步不发（等待）</text>
+
+  <line x1="560" y1="799" x2="560" y2="825" stroke="#54636f" stroke-width="2.2" marker-end="url(#arr)"/>
+
+  <!-- ===== Stage 4: Environment ===== -->
+  <rect x="70" y="826" width="980" height="132" rx="16" fill="#eceff3" stroke="#7b8794" stroke-width="1.5"/>
+  <circle cx="98" cy="854" r="17" fill="#7b8794"/><text class="badge" x="98" y="861" text-anchor="middle">4</text>
+  <text class="st" x="128" y="861" fill="#4a5560">环境推进（GameRunner · 官方 orbit_wars 环境）</text>
+
+  <rect x="92" y="882" width="700" height="58" rx="8" fill="#ffffff" stroke="#7b8794" stroke-width="1.1"/>
+  <text class="bd b" x="104" y="906">game.step(学习者动作, 对手动作)  →  下一观测 next_obs , done</text>
+  <text class="nt" x="104" y="928">对手 = 对手池随机历史快照（见右栏）；规则全由官方环境执行；等待步不产生经验</text>
+
+  <text class="nt" x="812" y="898">next_obs 既进入 ⑤ 算奖励，</text>
+  <text class="nt" x="812" y="916">也作为下一步观测回到 ①，</text>
+  <text class="nt" x="812" y="934">逐步推进整局（最多 500 步）</text>
+
+  <line x1="560" y1="958" x2="560" y2="984" stroke="#54636f" stroke-width="2.2" marker-end="url(#arr)"/>
+  <text class="nt" x="570" y="976">next_obs</text>
+
+  <!-- ===== Stage 5: Reward & returns ===== -->
+  <rect x="70" y="985" width="980" height="224" rx="16" fill="#fdf0e3" stroke="#e08a2b" stroke-width="1.5"/>
+  <circle cx="98" cy="1013" r="17" fill="#e08a2b"/><text class="badge" x="98" y="1020" text-anchor="middle">5</text>
+  <text class="st" x="128" y="1020" fill="#a75f16">奖励与回报（shaped_reward · RolloutBuffer · GAE）</text>
+
+  <rect x="92" y="1042" width="520" height="104" rx="8" fill="#ffffff" stroke="#e08a2b" stroke-width="1.1"/>
+  <text class="bd b" x="104" y="1066">shaped_reward(next_obs) =</text>
+  <text class="fm" x="104" y="1090" fill="#a75f16">(Σ我方兵力 − Σ敌方兵力) / 2000</text>
+  <text class="fm" x="104" y="1113" fill="#a75f16">+ (我方星球数 − 敌方星球数) / 100</text>
+  <text class="nt" x="104" y="1135">兵力 = 星球驻军 + 在途舰队 fleets（与官方计分口径一致）</text>
+
+  <text class="nt" x="104" y="1170">终局：end_episode 用环境真实胜负奖励覆盖最后一步</text>
+  <rect x="92" y="1180" width="520" height="24" rx="6" fill="#fae6cd" stroke="#e08a2b" stroke-width="0.8"/>
+  <text class="mn" x="104" y="1197">存入 RolloutBuffer：( 三路特征, a, logπ, V, r, done )</text>
+
+  <line x1="612" y1="1094" x2="648" y2="1094" stroke="#54636f" stroke-width="2" marker-end="url(#arr)"/>
+
+  <rect x="650" y="1042" width="384" height="178" rx="8" fill="#ffffff" stroke="#e08a2b" stroke-width="1.1"/>
+  <text class="bd b" x="662" y="1064">compute_gae   （γ = 0.99 , λ = 0.95）</text>
+  <text class="fm" x="662" y="1088" fill="#a75f16">δ(t) = r(t) + γ·V(t+1)·(1−d) − V(t)</text>
+  <text class="nt" x="680" y="1104">单步惊喜：这步实际比预期好/坏多少</text>
+  <text class="fm" x="662" y="1126" fill="#a75f16">A(t) = δ(t) + γλ·(1−d)·A(t+1)</text>
+  <text class="nt" x="680" y="1142">优势：把多步惊喜累加，用来推策略</text>
+  <text class="fm" x="662" y="1164" fill="#a75f16">R(t) = A(t) + V(t)</text>
+  <text class="nt" x="680" y="1180">价值头的回归目标（这局面该有的价值）</text>
+  <text class="nt" x="662" y="1204">γ 折扣未来奖励(越远越轻)  ·  λ 信V预判 ↔ 信真实奖励</text>
+
+  <line x1="560" y1="1209" x2="560" y2="1235" stroke="#54636f" stroke-width="2.2" marker-end="url(#arr)"/>
+
+  <!-- ===== Stage 6: PPO update ===== -->
+  <rect x="70" y="1236" width="980" height="286" rx="16" fill="#fdeceb" stroke="#e0574f" stroke-width="1.5"/>
+  <circle cx="98" cy="1264" r="17" fill="#e0574f"/><text class="badge" x="98" y="1271" text-anchor="middle">6</text>
+  <text class="st" x="128" y="1271" fill="#b1372f">PPO 更新（ppo_update）→ 反向传播更新网络</text>
+
+  <text class="bd" x="104" y="1300"><tspan class="b">①</tspan> 优势标准化   Â = (A − mean) / (std + 1e−8)</text>
+  <text class="bd" x="104" y="1324"><tspan class="b">②</tspan> 新旧概率比   r = exp( logπ_new − logπ_old )</text>
+
+  <rect x="92" y="1338" width="560" height="150" rx="8" fill="#ffffff" stroke="#e0574f" stroke-width="1.2"/>
+  <text class="fm" x="104" y="1364" fill="#b1372f">策略损失 Lπ = − E[ min( r·Â ,  clip(r, 1±ε)·Â ) ]   ε=0.2</text>
+  <text class="fm" x="104" y="1392" fill="#b1372f">价值损失 LV = MSE( Vθ , R )</text>
+  <text class="nt" x="360" y="1392">（纯 MSE，不裁剪）</text>
+  <text class="bd" x="104" y="1418">熵 H：鼓励探索，避免策略过早收敛</text>
+  <line x1="104" y1="1430" x2="640" y2="1430" stroke="#f0b6b1" stroke-width="1"/>
+  <rect x="104" y="1442" width="536" height="34" rx="7" fill="#fbe0de"/>
+  <text class="bg" x="118" y="1465" fill="#b1372f">总损失  L = Lπ + 0.5 · LV − 0.01 · H</text>
+
+  <rect x="672" y="1338" width="362" height="150" rx="8" fill="#ffffff" stroke="#e0574f" stroke-width="1.2"/>
+  <text class="bd" x="684" y="1364">优化器 Adam ，  lr = 3e−4</text>
+  <text class="bd" x="684" y="1390">4 个 epoch × minibatch 256</text>
+  <text class="bd" x="684" y="1416">梯度裁剪  max_norm = 0.5</text>
+  <text class="bd b" x="684" y="1450" fill="#b1372f">∇θ 反向传播  →  更新</text>
+  <text class="bd b" x="684" y="1470" fill="#b1372f">TargetPolicy 参数 θ</text>
+
+  <text class="nt" x="104" y="1506">θ 更新后，网络带着更强的策略回到 ②，继续下一轮自我对弈 —— 见左侧红色虚线闭环。</text>
+
+  <!-- ===== Loop-back (gradient / param update) ===== -->
+  <path d="M70,1400 L44,1400 L44,497 L69,497" fill="none" stroke="#c0392b" stroke-width="2.2" stroke-dasharray="7 5" marker-end="url(#arrR)"/>
+  <text class="b" x="30" y="1010" fill="#c0392b" font-size="14" text-anchor="middle" transform="rotate(-90 30 1010)">参数更新 θ ↺ 闭环</text>
+
+  <!-- ===== Right rail ===== -->
+  <!-- Rail 1 -->
+  <rect x="1085" y="145" width="470" height="210" rx="14" fill="#eef1f4" stroke="#7b8794" stroke-width="1.3"/>
+  <text class="st" x="1105" y="178" fill="#4a5560" font-size="18">自我对弈外循环（train 主循环）</text>
+  <text class="bd" x="1105" y="210">total_iters = 2000，每 iter 打 8 局（games_per_iter）</text>
+  <text class="bd" x="1105" y="238">座位轮换：learner = game % 2</text>
+  <text class="bd" x="1105" y="266">对手池 size = 4；每 25 iter 快照当前权重入池</text>
+  <text class="bd" x="1105" y="294">每局随机抽一个历史版本当对手（从随机权重训起）</text>
+  <text class="nt" x="1105" y="326">→ 稳定自对弈，不至于只会打某一个固定对手</text>
+
+  <!-- Rail 2 -->
+  <rect x="1085" y="378" width="470" height="214" rx="14" fill="#e6f6ec" stroke="#2ba15f" stroke-width="1.3"/>
+  <text class="st" x="1105" y="411" fill="#1c7d46" font-size="18">评估与存档 · 导出提交权重</text>
+  <text class="bd" x="1105" y="443">每 25 iter：当前模型与 best 打 24 局（greedy 贪心）</text>
+  <text class="bd" x="1105" y="471">胜率 ≥ 0.55  →  替换 best，保存 best.pt</text>
+  <text class="bd" x="1105" y="499">并 export_submission_weights  ↓</text>
+  <text class="mn" x="1105" y="525" fill="#1c7d46">submission_2p/model_weights.npz</text>
+  <text class="nt" x="1105" y="549">纯 NumPy 提交权重（不含优化器），训练完即可打包上传</text>
+  <text class="nt" x="1105" y="577">latest.pt 每次评估都存；final.pt 训练结束存一次</text>
+
+  <!-- Rail 3 -->
+  <rect x="1085" y="615" width="470" height="150" rx="14" fill="#f6f8fa" stroke="#c2cbd4" stroke-width="1.3"/>
+  <text class="st" x="1105" y="646" fill="#4a5560" font-size="18">关键超参（2P）</text>
+  <text class="mn" x="1105" y="678">lr = 3e−4</text><text class="mn" x="1330" y="678">γ = 0.99</text>
+  <text class="mn" x="1105" y="702">λ = 0.95</text><text class="mn" x="1330" y="702">clip ε = 0.2</text>
+  <text class="mn" x="1105" y="726">value_coef = 0.5</text><text class="mn" x="1330" y="726">entropy_coef = 0.01</text>
+  <text class="mn" x="1105" y="750">grad-clip = 0.5</text><text class="mn" x="1330" y="750">hidden 256 · blocks 2 · dropout 0.05</text>
+
+  <!-- Rail 4 -->
+  <rect x="1085" y="788" width="470" height="360" rx="14" fill="#ffffff" stroke="#8266d4" stroke-width="1.4" stroke-dasharray="8 5"/>
+  <text class="st" x="1105" y="820" fill="#5b3fbf" font-size="18">4P FFA 有何不同</text>
+  <line x1="1105" y1="832" x2="1535" y2="832" stroke="#e3daf6" stroke-width="1"/>
+  <text class="bd b" x="1105" y="858">网络 FourPlayerPolicy：</text>
+  <text class="bd" x="1119" y="882">· 来源特征 = [最多 4×14] 矩阵（2P 是 [14] 向量）</text>
+  <text class="bd" x="1119" y="906">· 候选 = [来源 × 目标 × 18] 网格（2P 是 [N,18]）</text>
+  <text class="mn" x="1119" y="930">· logits = [ S×T 对 + 1 个 hold（等待）]</text>
+  <text class="bd" x="1105" y="962">奖励：对手侧取 3 个对手的均值</text>
+  <text class="bd" x="1105" y="990">座位：学习者占 1/4，对手占其余 3 席</text>
+  <text class="bd" x="1105" y="1018">全局特征 GLOBAL_DIM = 16（含 3 对手状态）</text>
+  <text class="bd b" x="1105" y="1050">超参差异：</text>
+  <text class="bd" x="1119" y="1074">· batch 128（2P 是 256）</text>
+  <text class="bd" x="1119" y="1098">· games / iter 4（2P 是 8）</text>
+  <text class="bd" x="1119" y="1122">· best 替换阈值 0.45（2P 是 0.55）</text>
+
+  <!-- ===== Footer ===== -->
+  <text class="nt" x="70" y="1545">此图为训练端闭环；提交端是纯 NumPy 贪心前向（不 import torch），只在 ⑥ 导出处产出 model_weights.npz。内容忠于 training/train_2p_from_scratch.py。</text>
+</svg>
